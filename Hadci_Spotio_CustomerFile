@@ -160,7 +160,8 @@ BEGIN
 					ELSE [Added Date] END), GETDATE()) AS 'Field Days Since Last Active',*/
 		CASE WHEN [Field Customer Priority] IN ('X') THEN 'Not a Good Fit' 
 			WHEN [Field Customer Priority] IN ('Z') THEN 'Business Closed' 
-			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) <= 540 THEN 'Customer'
+			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) <= 365 THEN 'Customer' 
+			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) > 365 AND DATEDIFF(DAY, [LAST QUOTE DATE], GETDATE()) <= 365 THEN 'Active Prospect'
 			ELSE 'Prospect' 
 		END AS 'Stage'
 		, GETDATE(), Dataset.[ID]
@@ -400,7 +401,8 @@ BEGIN
 					ELSE [Added Date] END), GETDATE()) AS 'Field Days Since Last Active',*/
 		CASE WHEN [Field Customer Priority] IN ('X') THEN 'Not a Good Fit' 
 			WHEN [Field Customer Priority] IN ('Z') THEN 'Business Closed' 
-			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) <= 540 THEN 'Customer'
+			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) <= 365 THEN 'Customer' 
+			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) > 365 AND DATEDIFF(DAY, [LAST QUOTE DATE], GETDATE()) <= 365 THEN 'Active Prospect'
 			ELSE 'Prospect' 
 		END AS 'Stage'
 		, GETDATE(), Dataset.[ID]
