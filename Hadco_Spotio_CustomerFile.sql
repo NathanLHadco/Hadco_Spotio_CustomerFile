@@ -16,8 +16,7 @@ DECLARE @date varchar(10)
 DECLARE @directory varchar(100)
 DECLARE @directorycontents varchar(100)
 
-BEGIN
-	
+BEGIN	
 	--Unless specified, manifest date is assumed to be today if extract pulled before noon
 	--, tomorrow if pulled after noon, Monday if pulled on Friday
 	SET @date = REPLACE(CONVERT(VARCHAR(10), GETDATE(), 111), '/', '_')
@@ -192,11 +191,11 @@ BEGIN
 			C.ACCTNO AS 'Field Customer ID',
 			'"' + C.ADR2 + '"' AS 'Field Unit',
 			ISNULL(ACCT_TYPE.NAME,'') AS 'Field Account Type',
-			'"' + ISNULL(CS.F_NAME,'') + '"' AS 'Field Contact #1 First Name', 
-			'"' + ISNULL(CS.L_NAME,'') + '"' AS 'Field Contact #1 Last Name', 
-			'"' + ISNULL(CS.TITLE,'') + '"' AS 'Field Contact #1 Title',
-			'"' + ISNULL(C.EMAIL,'') + '"' AS 'Field Contact #1 Email',
-			'"' + ISNULL(C.TEL1,'') + '"' AS 'Field Contact #1 Phone', 
+			'"' + ISNULL((select F_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 First Name', 
+			'"' + ISNULL((select L_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Last Name', 
+			'"' + ISNULL((select TITLE from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Title',
+			'"' + ISNULL((select EMAIL from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Email',
+			'"' + ISNULL((select TEL1 from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Phone', 
 			ISNULL(CV.PRIORITY,'') AS 'Field Customer Priority', 
 			ISNULL(C.ALT3_CODE_C,'') AS 'Field High Priority Customer',
 			'' AS 'Field Estimated Annual Purchases USD',
@@ -217,16 +216,16 @@ BEGIN
 				ELSE '' END AS 'Field Office Manager Email',
 			CAST(C.ADDED_DTE AS DATE) AS 'Field Added Date',
 			CAST(ISNULL(C.ADDED_DTE, '01-01-2000') AS DATE) AS 'Added Date',
-			'' AS 'Field Contact #2 First Name',
-			'' AS 'Field Contact #2 Last Name',
-			'' AS 'Field Contact #2 Title',
-			'' AS 'Field Contact #2 Email',
-			'' AS 'Field Contact #2 Phone',
-			'' AS 'Field Contact #3 First Name',
-			'' AS 'Field Contact #3 Last Name',
-			'' AS 'Field Contact #3 Title',
-			'' AS 'Field Contact #3 Email',
-			'' AS 'Field Contact #3 Phone',
+			'"' + ISNULL((select F_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 First Name', 
+			'"' + ISNULL((select L_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Last Name', 
+			'"' + ISNULL((select TITLE from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Title',
+			'"' + ISNULL((select EMAIL from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Email',
+			'"' + ISNULL((select TEL1 from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Phone',
+			'"' + ISNULL((select F_NAME from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 First Name', 
+			'"' + ISNULL((select L_NAME from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Last Name', 
+			'"' + ISNULL((select TITLE from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Title',
+			'"' + ISNULL((select EMAIL from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Email',
+			'"' + ISNULL((select TEL1 from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Phone',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
 			ISNULL((SELECT SUM(RMA_LINE.DOC_TOTAL) FROM RMA_LINE WITH (NOLOCK) LEFT JOIN RMA_HDR ON RMA_LINE.DOC_NO = RMA_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = RMA_HDR.ACCTNO AND RMA_HDR.DOC_TYPE='M' and RMA_LINE.LINE_TYPE<>'02'),0) AS 'Field Current Year Sales',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE())-1 AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
@@ -433,11 +432,11 @@ BEGIN
 			C.ACCTNO AS 'Field Customer ID',
 			'"' + C.ADR2 + '"' AS 'Field Unit',
 			ISNULL(ACCT_TYPE.NAME,'') AS 'Field Account Type',
-			'"' + ISNULL(CS.F_NAME,'') + '"' AS 'Field Contact #1 First Name', 
-			'"' + ISNULL(CS.L_NAME,'') + '"' AS 'Field Contact #1 Last Name', 
-			'"' + ISNULL(CS.TITLE,'') + '"' AS 'Field Contact #1 Title',
-			'"' + ISNULL(C.EMAIL,'') + '"' AS 'Field Contact #1 Email',
-			'"' + ISNULL(C.TEL1,'') + '"' AS 'Field Contact #1 Phone', 
+			'"' + ISNULL((select F_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 First Name', 
+			'"' + ISNULL((select L_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Last Name', 
+			'"' + ISNULL((select TITLE from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Title',
+			'"' + ISNULL((select EMAIL from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Email',
+			'"' + ISNULL((select TEL1 from contacts where ccode = 'S01' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #1 Phone',  
 			ISNULL(CV.PRIORITY,'') AS 'Field Customer Priority', 
 			ISNULL(C.ALT3_CODE_C,'') AS 'Field High Priority Customer',
 			'' AS 'Field Estimated Annual Purchases USD',
@@ -458,16 +457,16 @@ BEGIN
 				ELSE '' END AS 'Field Office Manager Email',
 			CAST(C.ADDED_DTE AS DATE) AS 'Field Added Date',
 			CAST(ISNULL(C.ADDED_DTE, '01-01-2000') AS DATE) AS 'Added Date',
-			'' AS 'Field Contact #2 First Name',
-			'' AS 'Field Contact #2 Last Name',
-			'' AS 'Field Contact #2 Title',
-			'' AS 'Field Contact #2 Email',
-			'' AS 'Field Contact #2 Phone',
-			'' AS 'Field Contact #3 First Name',
-			'' AS 'Field Contact #3 Last Name',
-			'' AS 'Field Contact #3 Title',
-			'' AS 'Field Contact #3 Email',
-			'' AS 'Field Contact #3 Phone',
+			'"' + ISNULL((select F_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 First Name', 
+			'"' + ISNULL((select L_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Last Name', 
+			'"' + ISNULL((select TITLE from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Title',
+			'"' + ISNULL((select EMAIL from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Email',
+			'"' + ISNULL((select TEL1 from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Phone', 
+			'"' + ISNULL((select F_NAME from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 First Name', 
+			'"' + ISNULL((select L_NAME from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Last Name', 
+			'"' + ISNULL((select TITLE from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Title',
+			'"' + ISNULL((select EMAIL from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Email',
+			'"' + ISNULL((select TEL1 from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Phone', 
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
 			ISNULL((SELECT SUM(RMA_LINE.DOC_TOTAL) FROM RMA_LINE WITH (NOLOCK) LEFT JOIN RMA_HDR ON RMA_LINE.DOC_NO = RMA_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = RMA_HDR.ACCTNO AND RMA_HDR.DOC_TYPE='M' and RMA_LINE.LINE_TYPE<>'02'),0) AS 'Field Current Year Sales',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE())-1 AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
@@ -555,5 +554,6 @@ BEGIN
 	--Delete temp file
 	SET @cmdquery = 'del "' + @directory + '\temp_' + @filename + '"'
 	EXEC master..xp_cmdshell @cmdquery
+
 
 END
