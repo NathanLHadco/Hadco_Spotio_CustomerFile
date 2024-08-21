@@ -16,7 +16,7 @@ DECLARE @date varchar(10)
 DECLARE @directory varchar(100)
 DECLARE @directorycontents varchar(100)
 
-	
+BEGIN	
 	--Unless specified, manifest date is assumed to be today if extract pulled before noon
 	--, tomorrow if pulled after noon, Monday if pulled on Friday
 	SET @date = REPLACE(CONVERT(VARCHAR(10), GETDATE(), 111), '/', '_')
