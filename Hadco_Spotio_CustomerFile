@@ -1,6 +1,6 @@
 USE [GDB_01_001]
 GO
-/****** Object:  StoredProcedure [dbo].[Hadco_Spotio_CustomerFile]    Script Date: 9/6/2024 2:18:11 PM ******/
+/****** Object:  StoredProcedure [dbo].[Hadco_Spotio_CustomerFile]    Script Date: 9/12/2024 11:57:12 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -192,11 +192,11 @@ BEGIN
 			C.ACCTNO AS 'Field Customer ID',
 			'"' + C.ADR2 + '"' AS 'Field Unit',
 			ISNULL(ACCT_TYPE.NAME,'') AS 'Field Account Type',
-			'"' + RTRIM(ISNULL(ISNULL((select F_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 F_NAME from contacts where acctno = c.ACCTNO)), '')) + '"' AS 'Field Contact #1 First Name', 
-			'"' + RTRIM(ISNULL(ISNULL((select L_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 L_NAME from contacts where acctno = c.ACCTNO)), '')) + '"' AS 'Field Contact #1 Last Name', 
-			'"' + ISNULL(ISNULL((select TITLE from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 TITLE from contacts where acctno = c.ACCTNO)), '') + '"' AS 'Field Contact #1 Title',
-			'"' + ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 EMAIL from contacts where acctno = c.ACCTNO)), '') + '"' AS 'Field Contact #1 Email',
-			'"' + ISNULL(ISNULL((select TEL1 from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 TEL1 from contacts where acctno = c.ACCTNO)), '') + '"' AS 'Field Contact #1 Phone',  
+			'"' + left(RTRIM(ISNULL(ISNULL((select F_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 F_NAME from contacts where contacts.acctno = c.ACCTNO)), '')), 25) + '"' AS 'Field Contact #1 First Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select L_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 L_NAME from contacts where contacts.acctno = c.ACCTNO)), '')), 25) + '"' AS 'Field Contact #1 Last Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select TITLE from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 TITLE from contacts where contacts.acctno = c.ACCTNO)), '')), 100) + '"' AS 'Field Contact #1 Title',
+			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.acctno = c.ACCTNO)), '')), 100) + '"' AS 'Field Contact #1 Email',
+			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 TEL1 from contacts where contacts.acctno = c.ACCTNO)), '')), 40) + '"' AS 'Field Contact #1 Phone',
 			ISNULL(CV.PRIORITY,'') AS 'Field Customer Priority', 
 			ISNULL(C.ALT3_CODE_C,'') AS 'Field High Priority Customer',
 			'' AS 'Field Estimated Annual Purchases USD',
@@ -217,16 +217,16 @@ BEGIN
 				ELSE '' END AS 'Field Office Manager Email',
 			CAST(C.ADDED_DTE AS DATE) AS 'Field Added Date',
 			CAST(ISNULL(C.ADDED_DTE, '01-01-2000') AS DATE) AS 'Added Date',
-			'"' + RTRIM(ISNULL((select F_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #2 First Name', 
-			'"' + RTRIM(ISNULL((select L_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #2 Last Name', 
-			'"' + ISNULL((select TITLE from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Title',
-			'"' + ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Email',
-			'"' + ISNULL((select TEL1 from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Phone',
-			'"' + RTRIM(ISNULL((select F_NAME from contacts where ccode = 's03' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #3 First Name', 
-			'"' + RTRIM(ISNULL((select L_NAME from contacts where ccode = 's03' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #3 Last Name', 
-			'"' + ISNULL((select TITLE from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Title',
-			'"' + ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Email',
-			'"' + ISNULL((select TEL1 from contacts where ccode = 's03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Phone',
+			'"' + left(RTRIM(ISNULL(ISNULL((select F_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 25) + '"' AS 'Field Contact #2 First Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select L_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 25) + '"' AS 'Field Contact #2 Last Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select TITLE from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #2 Title',
+			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #2 Email',
+			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 40) + '"' AS 'Field Contact #2 Phone',
+			'"' + left(RTRIM(ISNULL(ISNULL((select F_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 25) + '"' AS 'Field Contact #3 First Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select L_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 25) + '"' AS 'Field Contact #3 Last Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select TITLE from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #3 Title',
+			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #3 Email',
+			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 40) + '"' AS 'Field Contact #3 Phone',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
 			ISNULL((SELECT SUM(RMA_LINE.DOC_TOTAL) FROM RMA_LINE WITH (NOLOCK) LEFT JOIN RMA_HDR ON RMA_LINE.DOC_NO = RMA_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = RMA_HDR.ACCTNO AND RMA_HDR.DOC_TYPE='M' and RMA_LINE.LINE_TYPE<>'02'),0) AS 'Field Current Year Sales',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE())-1 AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
@@ -433,11 +433,11 @@ BEGIN
 			C.ACCTNO AS 'Field Customer ID',
 			'"' + C.ADR2 + '"' AS 'Field Unit',
 			ISNULL(ACCT_TYPE.NAME,'') AS 'Field Account Type',
-			'"' + RTRIM(ISNULL(ISNULL((select F_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 F_NAME from contacts where acctno = c.ACCTNO)), '')) + '"' AS 'Field Contact #1 First Name', 
-			'"' + RTRIM(ISNULL(ISNULL((select L_NAME from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 L_NAME from contacts where acctno = c.ACCTNO)), '')) + '"' AS 'Field Contact #1 Last Name', 
-			'"' + ISNULL(ISNULL((select TITLE from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 TITLE from contacts where acctno = c.ACCTNO)), '') + '"' AS 'Field Contact #1 Title',
-			'"' + ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 EMAIL from contacts where acctno = c.ACCTNO)), '') + '"' AS 'Field Contact #1 Email',
-			'"' + ISNULL(ISNULL((select TEL1 from contacts where ccode = 'S01' and acctno = c.ACCTNO),(select top 1 TEL1 from contacts where acctno = c.ACCTNO)), '') + '"' AS 'Field Contact #1 Phone',    
+			'"' + isnull(ISNULL(left(RTRIM(ISNULL(ISNULL((select F_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 F_NAME from contacts where contacts.acctno = c.ACCTNO)), '')), 25), CS.F_NAME),'') + '"' AS 'Field Contact #1 First Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select L_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 L_NAME from contacts where contacts.acctno = c.ACCTNO)), '')), 25) + '"' AS 'Field Contact #1 Last Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select TITLE from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 TITLE from contacts where contacts.acctno = c.ACCTNO)), '')), 100) + '"' AS 'Field Contact #1 Title',
+			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.acctno = c.ACCTNO)), '')), 100) + '"' AS 'Field Contact #1 Email',
+			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 TEL1 from contacts where contacts.acctno = c.ACCTNO)), '')), 40) + '"' AS 'Field Contact #1 Phone', 
 			ISNULL(CV.PRIORITY,'') AS 'Field Customer Priority', 
 			ISNULL(C.ALT3_CODE_C,'') AS 'Field High Priority Customer',
 			'' AS 'Field Estimated Annual Purchases USD',
@@ -458,16 +458,16 @@ BEGIN
 				ELSE '' END AS 'Field Office Manager Email',
 			CAST(C.ADDED_DTE AS DATE) AS 'Field Added Date',
 			CAST(ISNULL(C.ADDED_DTE, '01-01-2000') AS DATE) AS 'Added Date',
-			'"' + RTRIM(ISNULL((select F_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #2 First Name', 
-			'"' + RTRIM(ISNULL((select L_NAME from contacts where ccode = 'S02' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #2 Last Name', 
-			'"' + ISNULL((select TITLE from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Title',
-			'"' + ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Email',
-			'"' + ISNULL((select TEL1 from contacts where ccode = 'S02' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #2 Phone', 
-			'"' + RTRIM(ISNULL((select F_NAME from contacts where ccode = 'S03' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #3 First Name', 
-			'"' + RTRIM(ISNULL((select L_NAME from contacts where ccode = 'S03' and acctno = c.ACCTNO),'')) + '"' AS 'Field Contact #3 Last Name', 
-			'"' + ISNULL((select TITLE from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Title',
-			'"' + ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Email',
-			'"' + ISNULL((select TEL1 from contacts where ccode = 'S03' and acctno = c.ACCTNO),'') + '"' AS 'Field Contact #3 Phone', 
+			'"' + isnull(ISNULL(left(RTRIM(ISNULL(ISNULL((select F_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 25), ''),'') + '"' AS 'Field Contact #2 First Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select L_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 25) + '"' AS 'Field Contact #2 Last Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select TITLE from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #2 Title',
+			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #2 Email',
+			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S02' and contacts.acctno = c.ACCTNO),''), '')), 40) + '"' AS 'Field Contact #2 Phone',
+			'"' + isnull(ISNULL(left(RTRIM(ISNULL(ISNULL((select F_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 25), ''),'') + '"' AS 'Field Contact #3 First Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select L_NAME from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 25) + '"' AS 'Field Contact #3 Last Name', 
+			'"' + left(RTRIM(ISNULL(ISNULL((select TITLE from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #3 Title',
+			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 100) + '"' AS 'Field Contact #3 Email',
+			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S03' and contacts.acctno = c.ACCTNO),''), '')), 40) + '"' AS 'Field Contact #3 Phone',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
 			ISNULL((SELECT SUM(RMA_LINE.DOC_TOTAL) FROM RMA_LINE WITH (NOLOCK) LEFT JOIN RMA_HDR ON RMA_LINE.DOC_NO = RMA_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE()) AND C.ACCTNO = RMA_HDR.ACCTNO AND RMA_HDR.DOC_TYPE='M' and RMA_LINE.LINE_TYPE<>'02'),0) AS 'Field Current Year Sales',
 			ISNULL((SELECT SUM(INV_LINE.DOC_TOTAL) FROM INV_LINE WITH (NOLOCK) LEFT JOIN INV_HDR ON INV_LINE.DOC_NO = INV_HDR.DOC_NO WHERE YEAR(POST_GL_DATE) = YEAR(GETDATE())-1 AND C.ACCTNO = INV_HDR.ACCTNO AND INV_HDR.DOC_TYPE='I' and INV_LINE.LINE_TYPE<>'02'),0) - 
@@ -547,11 +547,11 @@ BEGIN
 	SET @cmdquery = 'bcp "' + replace(@query, char(10), '') + '" QUERYOUT "' + @saveas 
 	+ '" -c -t, -T -S ' + @@servername 
 	EXEC master..xp_cmdshell @cmdquery 
-	
+
 	--Append data to the perm file
 	SET @cmdquery = 'type "' + @directory + '\temp_' + @filename + '" >> "' + @directory + '\' + @filename + '"'
 	EXEC master..xp_cmdshell @cmdquery
-	
+
 	--Delete temp file
 	SET @cmdquery = 'del "' + @directory + '\temp_' + @filename + '"'
 	EXEC master..xp_cmdshell @cmdquery
