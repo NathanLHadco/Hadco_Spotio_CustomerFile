@@ -1,6 +1,6 @@
-USE [GDB_01_001]
+﻿USE [GDB_01_001]
 GO
-/****** Object:  StoredProcedure [dbo].[Hadco_Spotio_CustomerFile]    Script Date: 9/12/2024 11:57:12 AM ******/
+/****** Object:  StoredProcedure [dbo].[Hadco_Spotio_CustomerFile]    Script Date: 3/5/2025 10:27:05 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -39,7 +39,7 @@ BEGIN
 	,''Field Contact #2 First Name'',''Field Contact #2 Last Name'',''Field Contact #2 Title'',''Field Contact #2 Email'',''Field Contact #2 Phone'',''Field Contact #3 First Name'',''Field Contact #3 Last Name'',''Field Contact #3 Title'',''Field Contact #3 Email'',''Field Contact #3 Phone''
 	,''Field Current Year Sales'',''Field Last Year Sales'',''Field Prior Year Sales'',''Field Current Year Orders'',''Field Last Year Orders'',''Field Prior Year Orders'',''Field Current Year Quotes'',''Field Last Year Quotes'',''Field Prior Year Quotes'',''Field Terms'',''Field Not Due A/R''
 	,''Field Late A/R 0-30'',''Field Late A/R 31-60'',''Field Late A/R 61+'',''Field Late A/R 61-90'',''Field Late A/R 91-120'',''Field Late A/R 120+'',''Field Quotes in Last 7 Days''
-	,''Field Quotes in Last 30 Days'',''Field Quotes in Last 3 Months'',''Field Drop in Sales Last 30 Days'',''Field Drop in Sales Last 90 Days'',''Field Drop in Sales Last 180 Days'',''Field New Products Sales Last 90 Days'',''Field Plastic Quotes in Last 180 Days'',''Field Activity  in Last 3 months'',''Stage'''
+	,''Field Quotes in Last 30 Days'',''Field Quotes in Last 3 Months'',''Field Drop in Sales Last 30 Days'',''Field Drop in Sales Last 90 Days'',''Field Drop in Sales Last 180 Days'',''Field New Products Sales Last 90 Days'',''Field Plastic Quotes in Last 180 Days'',''Field Activity  in Last 3 months'',''Stage'', ''Field Account Market'''
 	SET @saveas = @directory + '\' + @filename
 	SET @cmdquery = 'bcp "' + replace(@query, char(10), '') + '" QUERYOUT "' + @saveas 
 	+ '" -c -t, -T -S ' + @@servername 
@@ -141,6 +141,7 @@ BEGIN
 		, [Stage]
 		, [Data Date]
 		, [spotio_id]
+		, [Field Account Market]
 	)
 	SELECT 
 		Dataset.[Address (house # & street name)], Dataset.[House #], Dataset.[Street], Dataset.[City], Dataset.[ZIP], Dataset.[State], Dataset.[Country], Dataset.[Longitude], Dataset.[Latitude], Dataset.[Creation date], Dataset.[CUSTOMER OWNER EMAIL], Dataset.[Last Visit Result], Dataset.[Last Visit Date], Dataset.[Visit Count], Dataset.[External Customer ID], Dataset.[External Pin ID], 
@@ -164,7 +165,7 @@ BEGIN
 			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) > 365 AND DATEDIFF(DAY, [LAST QUOTE DATE], GETDATE()) <= 365 THEN 'Active Prospect'
 			ELSE 'Prospect' 
 		END AS 'Stage'
-		, GETDATE(), Dataset.[ID]
+		, GETDATE(), Dataset.[ID], DATASET.[Field Account Market]
 	FROM 
 	(
 		SELECT 
@@ -198,7 +199,7 @@ BEGIN
 			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.acctno = c.ACCTNO)), '')), 100) + '"' AS 'Field Contact #1 Email',
 			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 TEL1 from contacts where contacts.acctno = c.ACCTNO)), '')), 40) + '"' AS 'Field Contact #1 Phone',
 			ISNULL(CV.PRIORITY,'') AS 'Field Customer Priority', 
-			ISNULL(C.ALT3_CODE_C,'') AS 'Field High Priority Customer',
+			ISNULL(left(C.ALT3_CODE_C, 1),'') AS 'Field High Priority Customer',
 			'' AS 'Field Estimated Annual Purchases USD',
 			'' AS 'Field Estimated Number of Employees',
 			'' AS 'Field Estimated Number of Machines',
@@ -270,13 +271,16 @@ BEGIN
 			and LEFT (QL.PARTNUMBER, 2) IN ('PL') AND QL.ACCTNO = C.ACCTNO),0) > 0 THEN 'Y' ELSE 'N' END AS 'Field Plastic Quotes in Last 180 Days',
 			CAST(ISNULL((SELECT MAX(ADDED_DTE) FROM SO_HDR WITH (NOLOCK) WHERE SO_HDR.ACCTNO = C.ACCTNO),'01-01-2000') AS DATE) AS 'LAST SO DATE',
 			CAST(ISNULL((SELECT MAX(ADDED_DTE) FROM QUOTE_HDR WITH (NOLOCK) WHERE QUOTE_HDR.ACCTNO = C.ACCTNO),'01-01-2000') AS DATE) AS 'LAST QUOTE DATE',
-			CAST(ISNULL((SELECT MAX(ENTERED_DATE) FROM CALL_TRACKING WITH (NOLOCK) WHERE CALL_TRACKING.ACCTNO=C.ACCTNO AND CALL_TRACKING.ENTERED_BY IN (select ccode from userlist where depart in ('OSLS','ISLS'))),'01-01-2000') AS DATE) AS 'Last SALES CALL Date'
+			CAST(ISNULL((SELECT MAX(ENTERED_DATE) FROM CALL_TRACKING WITH (NOLOCK) WHERE CALL_TRACKING.ACCTNO=C.ACCTNO AND CALL_TRACKING.ENTERED_BY IN (select ccode from userlist where depart in ('OSLS','ISLS'))),'01-01-2000') AS DATE) AS 'Last SALES CALL Date',
+			ISNULL(CSrch.SEARCH5,'') AS 'Field Account Market'
+
 		FROM CUSTVEND C WITH (NOLOCK) 
 		LEFT JOIN Hadco_SpotIO_ID ID WITH (NOLOCK) ON C.ACCTNO = ID.acctno
 		LEFT JOIN CUSTVENDSETUP CV WITH (NOLOCK) ON C.ACCTNO=CV.ACCTNO AND CV.CUST_VEND = 'C'
 		LEFT JOIN CONTACTS CS WITH (NOLOCK) ON CV.ACCTNO=CS.ACCTNO AND CV.CCODE=CS.CCODE AND CV.SUBC=CS.SUBC LEFT JOIN USERLIST INSIDE WITH (NOLOCK) ON CV.SMAN1_CODE = INSIDE.CCODE
 		LEFT JOIN USERLIST OUTSIDE WITH (NOLOCK) ON C.REGION = OUTSIDE.CCODE LEFT JOIN TBLCODE ACCT_TYPE WITH (NOLOCK) ON CV.ACCOUNT_TYPE = ACCT_TYPE.TBLCODE AND TBLTYPE = '002' 
 		LEFT JOIN TERMS WITH (NOLOCK) ON CV.TERM_CODE = TERMS.TERM_CODE
+		left join CUSTSEARCH CSrch on c.ACCTNO = CSrch.ACCTNO
 		LEFT JOIN 
 		(
 			SELECT 
@@ -382,6 +386,7 @@ BEGIN
 		, [Stage]
 		, [Data Date]
 		, [spotio_id]
+		, [Field Account Market]
 	)
 	SELECT 
 		Dataset.[Address (house # & street name)], Dataset.[House #], Dataset.[Street], Dataset.[City], Dataset.[ZIP], Dataset.[State], Dataset.[Country], Dataset.[Longitude], Dataset.[Latitude], Dataset.[Creation date], Dataset.[CUSTOMER OWNER EMAIL], Dataset.[Last Visit Result], Dataset.[Last Visit Date], Dataset.[Visit Count], Dataset.[External Customer ID], Dataset.[External Pin ID], 
@@ -405,7 +410,7 @@ BEGIN
 			WHEN DATEDIFF(DAY, [LAST SO DATE], GETDATE()) > 365 AND DATEDIFF(DAY, [LAST QUOTE DATE], GETDATE()) <= 365 THEN 'Active Prospect'
 			ELSE 'Prospect' 
 		END AS 'Stage'
-		, GETDATE(), Dataset.[ID]
+		, GETDATE(), Dataset.[ID], DATASET.[Field Account Market]
 	FROM 
 	(
 		SELECT 
@@ -439,7 +444,7 @@ BEGIN
 			'"' + left(RTRIM(ISNULL(ISNULL((select LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 LEFT(EMAIL, (IIF(ISNULL( (select CHARINDEX(';', EMAIL)), (LEN(EMAIL))) = 0, (LEN(EMAIL)), (select CHARINDEX(';', EMAIL))))) from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.acctno = c.ACCTNO)), '')), 100) + '"' AS 'Field Contact #1 Email',
 			'"' + left(RTRIM(ISNULL(ISNULL((select TEL1 from contacts LEFT JOIN CUSTVENDSETUP ON contacts.ACCTNO = CUSTVENDSETUP.ACCTNO AND CUSTVENDSETUP.CUST_VEND = 'C' where contacts.ccode = 'S01' and contacts.acctno = c.ACCTNO),(select top 1 TEL1 from contacts where contacts.acctno = c.ACCTNO)), '')), 40) + '"' AS 'Field Contact #1 Phone', 
 			ISNULL(CV.PRIORITY,'') AS 'Field Customer Priority', 
-			ISNULL(C.ALT3_CODE_C,'') AS 'Field High Priority Customer',
+			ISNULL(left(C.ALT3_CODE_C, 1),'') AS 'Field High Priority Customer',
 			'' AS 'Field Estimated Annual Purchases USD',
 			'' AS 'Field Estimated Number of Employees',
 			'' AS 'Field Estimated Number of Machines',
@@ -511,13 +516,15 @@ BEGIN
 			and LEFT (QL.PARTNUMBER, 2) IN ('PL') AND QL.ACCTNO = C.ACCTNO),0) > 0 THEN 'Y' ELSE 'N' END AS 'Field Plastic Quotes in Last 180 Days',
 			CAST(ISNULL((SELECT MAX(ADDED_DTE) FROM SO_HDR WITH (NOLOCK) WHERE SO_HDR.ACCTNO = C.ACCTNO),'01-01-2000') AS DATE) AS 'LAST SO DATE',
 			CAST(ISNULL((SELECT MAX(ADDED_DTE) FROM QUOTE_HDR WITH (NOLOCK) WHERE QUOTE_HDR.ACCTNO = C.ACCTNO),'01-01-2000') AS DATE) AS 'LAST QUOTE DATE',
-			CAST(ISNULL((SELECT MAX(ENTERED_DATE) FROM CALL_TRACKING WITH (NOLOCK) WHERE CALL_TRACKING.ACCTNO=C.ACCTNO AND CALL_TRACKING.ENTERED_BY IN (select ccode from userlist where depart in ('OSLS','ISLS'))),'01-01-2000') AS DATE) AS 'Last SALES CALL Date'
+			CAST(ISNULL((SELECT MAX(ENTERED_DATE) FROM CALL_TRACKING WITH (NOLOCK) WHERE CALL_TRACKING.ACCTNO=C.ACCTNO AND CALL_TRACKING.ENTERED_BY IN (select ccode from userlist where depart in ('OSLS','ISLS'))),'01-01-2000') AS DATE) AS 'Last SALES CALL Date',
+			ISNULL(CSrch.SEARCH5,'') AS 'Field Account Market'
 		FROM CUSTVEND C WITH (NOLOCK) 
 		LEFT JOIN Hadco_SpotIO_ID ID WITH (NOLOCK) ON C.ACCTNO = ID.acctno
 		LEFT JOIN CUSTVENDSETUP CV WITH (NOLOCK) ON C.ACCTNO=CV.ACCTNO AND CV.CUST_VEND = 'C'
 		LEFT JOIN CONTACTS CS WITH (NOLOCK) ON CV.ACCTNO=CS.ACCTNO AND CV.CCODE=CS.CCODE AND CV.SUBC=CS.SUBC LEFT JOIN USERLIST INSIDE WITH (NOLOCK) ON CV.SMAN1_CODE = INSIDE.CCODE
 		LEFT JOIN USERLIST OUTSIDE WITH (NOLOCK) ON C.REGION = OUTSIDE.CCODE LEFT JOIN TBLCODE ACCT_TYPE WITH (NOLOCK) ON CV.ACCOUNT_TYPE = ACCT_TYPE.TBLCODE AND TBLTYPE = '002' 
 		LEFT JOIN TERMS WITH (NOLOCK) ON CV.TERM_CODE = TERMS.TERM_CODE
+		left join CUSTSEARCH CSrch on c.ACCTNO = CSrch.ACCTNO
 		LEFT JOIN 
 		(
 			SELECT 
@@ -542,7 +549,7 @@ BEGIN
 	) DATASET
 
 	--Export temp data file
-	SET @query= 'SELECT * FROM GDB_01_001.dbo.Hadco_Spotio_CustomerData' --this is a view
+	SET @query= 'SELECT DISTINCT * FROM GDB_01_001.dbo.Hadco_Spotio_CustomerData' --this is a view of differences between previous values (start of day) and last values (this run)
 	SET @saveas = @directory + '\temp_' + @filename
 	SET @cmdquery = 'bcp "' + replace(@query, char(10), '') + '" QUERYOUT "' + @saveas 
 	+ '" -c -t, -T -S ' + @@servername 
